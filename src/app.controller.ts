@@ -1,6 +1,8 @@
 import { Controller, Get, Post, Logger, Param, Body, Req, Request, HttpService, HttpException, Put } from '@nestjs/common';
-import { catchError, tap, map } from 'rxjs/operators';
+// import { catchError, tap, map } from 'rxjs/operators';
 import { AppService } from './app.service';
+import { resolve } from 'dns';
+// import { resolve } from 'dns';
 
 @Controller()
 export class AppController {
@@ -13,7 +15,7 @@ export class AppController {
   }
 
   @Post('method_1')
-  method_1(@Body() data: any, @Req() request: Request): string {
+   async method_1(@Body() data: any, @Req() request: Request): Promise<any> {
     console.log('POST @ /method_1');
 
     // the rest does not work in v2
@@ -29,16 +31,15 @@ export class AppController {
     //     Logger.log(this.appService.getStatus('[POST] /subscribe, success', x));
     // })
 
-    const apiData = this.httpService.get('https://cat-fact.herokuapp.com/facts').pipe(
-      catchError(e => {
-        Logger.log(e);
-        throw new HttpException(e.response.statusText, e.response.status);
-      })).subscribe((x) => {
-        console.log('x', x);
+    const apiData = await new Promise((resolve, reject) => {
+
+      this.httpService.get('https://cat-fact.herokuapp.com/facts').subscribe((response)=>{
+        return resolve(response.data);
+      });
     });
     console.log('apiData', apiData);
 
 
-    return this.appService.getHello();
+    return apiData;
   }
 }
